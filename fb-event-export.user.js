@@ -8,7 +8,7 @@
 // @grant        none
 // ==/UserScript==
 /* jshint -W097 */
-/* eslint-disable no-console */
+/* eslint-disable no-console, no-unused-vars */
 'use strict';
 
 /*
@@ -127,19 +127,25 @@ function addExportLink() {
         .replace('[LOCATION]', ev.locationAndAddress)
         .replace('[DETAILS]', ev.description);
 
-    var evBarElm = qs('#event_button_bar');
-    var exportElm = evBarElm.firstChild.cloneNode();
-    exportElm.href = exportUrl;
-    exportElm.textContent = 'Export Event';
+	dbg(exportUrl, ' - Export URL');
+
+    var
+		evBarElm = qsv('#event_button_bar'),
+		exportElmLink = qsv('a', evBarElm),
+		exportElmParent = exportElmLink.parentNode;
+
+    exportElmLink = exportElmLink.cloneNode();
+    exportElmLink.href = exportUrl;
+    exportElmLink.textContent = 'Export Event';
 
     // Disable Facebook event listeners (that are attached due to cloning element)
-    exportElm.removeAttribute('ajaxify');
-    exportElm.removeAttribute('rel');
+    exportElmLink.removeAttribute('ajaxify');
+    exportElmLink.removeAttribute('rel');
 
     // Open in new tab
-    exportElm.setAttribute('target', '_blank');
+    exportElmLink.setAttribute('target', '_blank');
 
-    evBarElm.appendChild(exportElm);
+    exportElmParent.appendChild(exportElmLink);
 }
 
 function addExportLinkWhenLoaded() {
