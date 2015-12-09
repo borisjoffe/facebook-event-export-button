@@ -38,65 +38,65 @@ THE SOFTWARE.
 
 // Util
 var
-    qs = document.querySelector.bind(document),
-    qsa = document.querySelectorAll.bind(document),
-    err = console.error.bind(console),
-    log = console.log.bind(console),
-    euc = encodeURIComponent;
+	qs = document.querySelector.bind(document),
+	qsa = document.querySelectorAll.bind(document),
+	err = console.error.bind(console),
+	log = console.log.bind(console),
+	euc = encodeURIComponent;
 
 var DEBUG = true;
 function dbg() {
   if (DEBUG)
-      console.log.apply(console, arguments);
+	  console.log.apply(console, arguments);
 
   return arguments[0];
 }
 
 function qsv(elmStr, parent) {
-    var elm = parent ? parent.querySelector(elmStr) : qs(elmStr);
-    if (!elm) err('(qs) Could not get element -', elmStr);
-    return elm;
+	var elm = parent ? parent.querySelector(elmStr) : qs(elmStr);
+	if (!elm) err('(qs) Could not get element -', elmStr);
+	return elm;
 }
 
 function qsav(elmStr, parent) {
-    var elm = parent ? parent.querySelectorAll(elmStr) : qsa(elmStr);
-    if (!elm) err('(qsa) Could not get element -', elmStr);
-    return elm;
+	var elm = parent ? parent.querySelectorAll(elmStr) : qsa(elmStr);
+	if (!elm) err('(qsa) Could not get element -', elmStr);
+	return elm;
 }
 
 function addExportLink() {
-    log('Event Exporter running');
+	log('Event Exporter running');
 
-    // Check for export link
-    if (document.body.textContent.search('Export Event') !== -1) {
-        log('Event already has Export link...exiting');
-        return;
-    }
+	// Check for export link
+	if (document.body.textContent.search('Export Event') !== -1) {
+		log('Event already has Export link...exiting');
+		return;
+	}
 
-    // Event Summary
-    var evElm = qsv('#event_summary');
+	// Event Summary
+	var evElm = qsv('#event_summary');
 
-    // Date & Time
+	// Date & Time
 	// TODO: convert to local time instead of UTC
-    function convertDateString(dateObj) {
-        return dateObj.toISOString()
-            .replace(/-/g, '')
-            .replace(/:/g, '')
-            .replace('.000Z', '');
-    }
+	function convertDateString(dateObj) {
+		return dateObj.toISOString()
+	                  .replace(/-/g, '')
+	                  .replace(/:/g, '')
+	                  .replace('.000Z', '');
+	}
 
-    var sdElm = qsv('[itemprop="startDate"]', evElm);
-    var sdd = new Date(sdElm.getAttribute('content')),
-        edd = new Date(sdd);
-    edd.setHours(edd.getHours() + 1); // Add one hour as a default
-    var evStartDate = convertDateString(sdd);
-    var evEndDate = convertDateString(edd);
+	var sdElm = qsv('[itemprop="startDate"]', evElm);
+	var sdd = new Date(sdElm.getAttribute('content')),
+		edd = new Date(sdd);
+	edd.setHours(edd.getHours() + 1); // Add one hour as a default
+	var evStartDate = convertDateString(sdd);
+	var evEndDate = convertDateString(edd);
 
-    // Location
-    var locElm = qsv('[data-hovercard]', evElm);
-    var addrElm = locElm.nextSibling;
+	// Location
+	var locElm = qsv('[data-hovercard]', evElm);
+	var addrElm = locElm.nextSibling;
 
-    // Description
+	// Description
 	var descElm = qs('#event_description').querySelector('span'),
 		desc;
 
@@ -126,49 +126,49 @@ function addExportLink() {
 	ev.locationAndAddress = ev.location + ', ' + ev.address;
 
 	for (var prop in ev) if (ev.hasOwnProperty(prop))
-			ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
+		ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
 
-    // Create link, use UTC timezone to be compatible with toISOString()
-    var exportUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=[TITLE]&dates=[STARTDATE]/[ENDDATE]&details=[DETAILS]&location=[LOCATION]&ctz=UTC';
+	// Create link, use UTC timezone to be compatible with toISOString()
+	var exportUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=[TITLE]&dates=[STARTDATE]/[ENDDATE]&details=[DETAILS]&location=[LOCATION]&ctz=UTC';
 
-    exportUrl = exportUrl
-        .replace('[TITLE]', ev.title)
-        .replace('[STARTDATE]', ev.startDate)
-        .replace('[ENDDATE]', ev.endDate)
-        .replace('[LOCATION]', ev.locationAndAddress)
-        .replace('[DETAILS]', ev.description);
+	exportUrl = exportUrl
+	                     .replace('[TITLE]', ev.title)
+	                     .replace('[STARTDATE]', ev.startDate)
+	                     .replace('[ENDDATE]', ev.endDate)
+	                     .replace('[LOCATION]', ev.locationAndAddress)
+	                     .replace('[DETAILS]', ev.description);
 
 	dbg(exportUrl, ' - Export URL');
 
-    var
+	var
 		evBarElm = qsv('#event_button_bar'),
 		exportElmLink = qsv('a', evBarElm),
 		exportElmParent = exportElmLink.parentNode;
 
-    exportElmLink = exportElmLink.cloneNode();
-    exportElmLink.href = exportUrl;
-    exportElmLink.textContent = 'Export Event';
+	exportElmLink = exportElmLink.cloneNode();
+	exportElmLink.href = exportUrl;
+	exportElmLink.textContent = 'Export Event';
 
-    // Disable Facebook event listeners (that are attached due to cloning element)
-    exportElmLink.removeAttribute('ajaxify');
-    exportElmLink.removeAttribute('rel');
+	// Disable Facebook event listeners (that are attached due to cloning element)
+	exportElmLink.removeAttribute('ajaxify');
+	exportElmLink.removeAttribute('rel');
 
-    // Open in new tab
-    exportElmLink.setAttribute('target', '_blank');
+	// Open in new tab
+	exportElmLink.setAttribute('target', '_blank');
 
-    exportElmParent.appendChild(exportElmLink);
+	exportElmParent.appendChild(exportElmLink);
 }
 
 function addExportLinkWhenLoaded() {
-    if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
-        // not loaded
-        log('page not loaded...');
-        setTimeout(addExportLinkWhenLoaded, 1000);
-    } else {
-        // loaded
-        log('page loaded...adding link');
-        addExportLink();
-    }
+	if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
+		// not loaded
+		log('page not loaded...');
+		setTimeout(addExportLinkWhenLoaded, 1000);
+	} else {
+		// loaded
+		log('page loaded...adding link');
+		addExportLink();
+	}
 }
 
 window.addEventListener('load', addExportLinkWhenLoaded, true);
