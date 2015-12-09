@@ -39,9 +39,30 @@ THE SOFTWARE.
 // Util
 var
     qs = document.querySelector.bind(document),
+    qsa = document.querySelectorAll.bind(document),
     err = console.error.bind(console),
     log = console.log.bind(console),
     euc = encodeURIComponent;
+
+var DEBUG = true;
+function dbg() {
+  if (DEBUG)
+      console.log.apply(console, arguments);
+
+  return arguments[0];
+}
+
+function qsv(elmStr, parent) {
+    var elm = parent ? parent.querySelector(elmStr) : qs(elmStr);
+    if (!elm) err('(qs) Could not get element -', elmStr);
+    return elm;
+}
+
+function qsav(elmStr, parent) {
+    var elm = parent ? parent.querySelectorAll(elmStr) : qsa(elmStr);
+    if (!elm) err('(qsa) Could not get element -', elmStr);
+    return elm;
+}
 
 function addExportLink() {
     log('Event Exporter running');
@@ -53,8 +74,7 @@ function addExportLink() {
     }
 
     // Event Summary
-    var evElm = qs('#event_summary');
-    if (!evElm) err('Event summary element doesn\'t exist');
+    var evElm = qsv('#event_summary');
 
     // Date & Time
     function convertDateString(dateObj) {
@@ -63,8 +83,8 @@ function addExportLink() {
             .replace(/:/g, '')
             .replace('.000Z', '');
     }
-    var sdElm = evElm.querySelector('[itemprop="startDate"]');
-    if (!sdElm) err('Start date element doesn\'t exist');
+
+    var sdElm = qsv('[itemprop="startDate"]', evElm);
     var sdd = new Date(sdElm.getAttribute('content')),
         edd = new Date(sdd);
     edd.setHours(edd.getHours() + 1); // Add one hour as a default
@@ -72,11 +92,16 @@ function addExportLink() {
     var evEndDate = convertDateString(edd);
 
     // Location
-    var locElm = evElm.querySelector('[data-hovercard]');
+    var locElm = qsv('[data-hovercard]', evElm);
     var addrElm = locElm.nextSibling;
 
     // Description
-    var desc = qs('#event_description').querySelector('span').innerText; // use innerText for proper formatting, innerText will ship in Firefox 45
+	var descElm = qs('#event_description').querySelector('span');
+
+	// use innerText for proper formatting, innerText will ship in Firefox 45
+    var desc = descElm.innerText ?
+	           descElm.innerText :
+	           descElm.innerHTML.replace(/<br>\s*/g, '\n'); // fallback
 
 	var ev = {
 		title       : document.title,
@@ -84,13 +109,13 @@ function addExportLink() {
 		endDate     : evEndDate,
 		location    : locElm.textContent,
 		address     : addrElm.textContent,
-		description : desc
+		description : location.href + '\n\n' + desc
 	};
 
 	ev.locationAndAddress = ev.location + ', ' + ev.address;
 
 	for (var prop in ev) if (ev.hasOwnProperty(prop))
-			ev[prop] = euc(ev[prop]);
+			ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
 
     // Create link, use UTC timezone to be compatible with toISOString()
     var exportUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=[TITLE]&dates=[STARTDATE]/[ENDDATE]&details=[DETAILS]&location=[LOCATION]&ctz=UTC';
