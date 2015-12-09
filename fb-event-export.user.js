@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.0
+// @version      1.1
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/events/*
@@ -77,6 +77,7 @@ function addExportLink() {
     var evElm = qsv('#event_summary');
 
     // Date & Time
+	// TODO: convert to local time instead of UTC
     function convertDateString(dateObj) {
         return dateObj.toISOString()
             .replace(/-/g, '')
@@ -96,12 +97,22 @@ function addExportLink() {
     var addrElm = locElm.nextSibling;
 
     // Description
-	var descElm = qs('#event_description').querySelector('span');
+	var descElm = qs('#event_description').querySelector('span'),
+		desc;
 
 	// use innerText for proper formatting, innerText will ship in Firefox 45
-    var desc = descElm.innerText ?
-	           descElm.innerText :
-	           descElm.innerHTML.replace(/<br>\s*/g, '\n'); // fallback
+	if (descElm.innerText) {
+		// Show full event text so that innerText sees it
+		qs('.text_exposed_show', descElm).style.display = 'inline';
+		qs('.text_exposed_link', descElm).style.display = 'none';
+		desc = descElm.innerText;
+	} else {
+		// fallback, HTML encoded entities will appear broken
+		desc = descElm.innerHTML
+		              .replace(/<br>\s*/g, '\n') // fix newlines
+		              .replace(/<a href="([^"]*)"[^>]*>/g, '[$1] ') // show link urls
+		              .replace(/<[^>]*>/g, '');  // strip html tags
+}
 
 	var ev = {
 		title       : document.title,
