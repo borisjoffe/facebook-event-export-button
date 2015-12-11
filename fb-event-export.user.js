@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.2.1
+// @version      1.2.2
 // @description  Export Facebook events
 // @author       Boris Joffe
-// @match        https://www.facebook.com/events/*
+// @match        https://www.facebook.com/*
 // @grant        none
 // ==/UserScript==
 /* jshint -W097 */
@@ -187,8 +187,18 @@ function addExportLink() {
 	});
 }
 
+(function (oldPushState) {
+	// monkey patch pushState so that script works when navigating around Facebook
+    window.history.pushState = function () {
+        oldPushState.apply(window.history, arguments);
+        setTimeout(addExportLinkWhenLoaded, 1000);
+    };
+})(window.history.pushState);
+
 function addExportLinkWhenLoaded() {
-	if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
+	if (location.href.indexOf('/events/') === -1) {
+		return;
+	} else if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
 		// not loaded
 		log('page not loaded...');
 		setTimeout(addExportLinkWhenLoaded, 1000);
