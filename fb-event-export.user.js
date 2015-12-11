@@ -67,12 +67,6 @@ function qsav(elmStr, parent) {
 function addExportLink() {
 	log('Event Exporter running');
 
-	// Check for export link
-	if (document.body.textContent.search('Export Event') !== -1) {
-		log('Event already has Export link...exiting');
-		return;
-	}
-
 	// Event Summary
 	var evElm = qsv('#event_summary');
 
