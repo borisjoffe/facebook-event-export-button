@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.1
+// @version      1.2
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/events/*
@@ -44,7 +44,7 @@ var
 	log = console.log.bind(console),
 	euc = encodeURIComponent;
 
-var DEBUG = true;
+var DEBUG = false;
 function dbg() {
   if (DEBUG)
 	  console.log.apply(console, arguments);
@@ -166,6 +166,12 @@ function addExportLink() {
 	exportElmLink.setAttribute('target', '_blank');
 
 	exportElmParent.appendChild(exportElmLink);
+
+	var evBarLinks = document.querySelectorAll('#event_button_bar a');
+	Array.from(evBarLinks).forEach(function (a) {
+		// fix styles
+		a.style.display = 'inline-block';
+	});
 }
 
 function addExportLinkWhenLoaded() {
