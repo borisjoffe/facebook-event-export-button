@@ -180,7 +180,7 @@ function addExportLink() {
 
 	exportElmParent.appendChild(exportElmLink);
 
-	var evBarLinks = document.querySelectorAll('#event_button_bar a');
+	var evBarLinks = qsav('a', evBarElm);
 	Array.from(evBarLinks).forEach(function (a) {
 		// fix styles
 		a.style.display = 'inline-block';
