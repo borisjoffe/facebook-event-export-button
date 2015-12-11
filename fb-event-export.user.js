@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.2
+// @version      1.2.1
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/events/*
@@ -79,6 +79,17 @@ function setProp(parent, path, val) {
 	parent[path.shift()] = val;
 }
 
+function getProp(obj, path, defaultValue) {
+	path = Array.isArray(path) ? Array.from(path) : path.split('.');
+	var prop = obj;
+
+	while (path.length && obj && obj !== null) {
+		prop = obj[path.shift()];
+	}
+
+	return prop != null ? prop : defaultValue;
+}
+
 function addExportLink() {
 	log('Event Exporter running');
 
@@ -102,8 +113,8 @@ function addExportLink() {
 	var evEndDate = convertDateString(edd);
 
 	// Location
-	var locElm = qsv('[data-hovercard]', evElm);
-	var addrElm = locElm.nextSibling;
+	var locElm = qsv('[data-hovercard]', evElm) || {};
+	var addrElm = getProp(locElm, 'nextSibling', {});
 
 	// Description
 	var descElm = qs('#event_description').querySelector('span'),
@@ -127,12 +138,14 @@ function addExportLink() {
 		title       : document.title,
 		startDate   : evStartDate,
 		endDate     : evEndDate,
-		location    : locElm.textContent,
-		address     : addrElm.textContent,
+		location    : locElm.textContent || '',
+		address     : addrElm.textContent || 'No address specified',
 		description : location.href + '\n\n' + desc
 	};
 
-	ev.locationAndAddress = ev.location + ', ' + ev.address;
+	ev.locationAndAddress = ev.location ?
+	                        ev.location + ', ' + ev.address :
+	                        ev.address;
 
 	for (var prop in ev) if (ev.hasOwnProperty(prop))
 		ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
