@@ -189,10 +189,10 @@ function addExportLink() {
 
 (function (oldPushState) {
 	// monkey patch pushState so that script works when navigating around Facebook
-    window.history.pushState = function () {
-        oldPushState.apply(window.history, arguments);
-        setTimeout(addExportLinkWhenLoaded, 1000);
-    };
+	window.history.pushState = function () {
+		oldPushState.apply(window.history, arguments);
+		setTimeout(addExportLinkWhenLoaded, 1000);
+	};
 })(window.history.pushState);
 
 function addExportLinkWhenLoaded() {
