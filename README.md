@@ -11,6 +11,11 @@ Features
 
 ![Facebook F8 Event screenshot](f8-event-screenshot-small-ds.png)
 
+Known Issues
+-----------
+- Google Calendar times are displayed in UTC
+- Uses unsafeWindow
+
 License
 -------
 MIT
