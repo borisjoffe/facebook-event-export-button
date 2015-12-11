@@ -7,7 +7,7 @@ Facebook Event Exporter
 - TamperMonkey / GreaseMonkey plugin
 - Full event text and event URL is included in the event description
 
-![Facebook F8 Event screenshot](f8-event-screenshot-small.jpg)
+![Facebook F8 Event screenshot](f8-event-screenshot-small-ds.png)
 
 License
 -------
