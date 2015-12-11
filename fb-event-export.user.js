@@ -64,6 +64,21 @@ function qsav(elmStr, parent) {
 	return elm;
 }
 
+function setProp(parent, path, val) {
+	if (!parent || typeof parent !== 'object')
+		return;
+	path = Array.isArray(path) ? Array.from(path) : path.split('.');
+	var child, prop;
+	while (path.length > 1) {
+		prop = path.shift();
+		child = parent[prop];
+		if (!child || typeof child !== 'object')
+			parent[prop] = {};
+		parent = parent[prop];
+	}
+	parent[path.shift()] = val;
+}
+
 function addExportLink() {
 	log('Event Exporter running');
 
@@ -97,8 +112,8 @@ function addExportLink() {
 	// use innerText for proper formatting, innerText will ship in Firefox 45
 	if (descElm.innerText) {
 		// Show full event text so that innerText sees it
-		qs('.text_exposed_show', descElm).style.display = 'inline';
-		qs('.text_exposed_link', descElm).style.display = 'none';
+		setProp(qs('.text_exposed_show', descElm), 'style.display', 'inline');
+		setProp(qs('.text_exposed_link', descElm), 'style.display', 'none');
 		desc = descElm.innerText;
 	} else {
 		// fallback, HTML encoded entities will appear broken
