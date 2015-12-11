@@ -5,7 +5,7 @@
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
-// @grant        none
+// @grant        unsafeWindow
 // ==/UserScript==
 /* jshint -W097 */
 /* eslint-disable no-console, no-unused-vars */
@@ -187,26 +187,36 @@ function addExportLink() {
 	});
 }
 
+
 (function (oldPushState) {
 	// monkey patch pushState so that script works when navigating around Facebook
 	window.history.pushState = function () {
+		dbg('running pushState');
 		oldPushState.apply(window.history, arguments);
 		setTimeout(addExportLinkWhenLoaded, 1000);
 	};
+	dbg('monkey patched pushState');
 })(window.history.pushState);
+
+window.onpopstate = function () {
+	dbg('pop state');
+	setTimeout(addExportLinkWhenLoaded, 1000);
+};
 
 function addExportLinkWhenLoaded() {
 	if (location.href.indexOf('/events/') === -1) {
+		dbg('not an event page. skipping...');
 		return;
 	} else if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
 		// not loaded
-		log('page not loaded...');
+		dbg('page not loaded...');
 		setTimeout(addExportLinkWhenLoaded, 1000);
 	} else {
 		// loaded
-		log('page loaded...adding link');
+		dbg('page loaded...adding link');
 		addExportLink();
 	}
 }
+
 
 window.addEventListener('load', addExportLinkWhenLoaded, true);
