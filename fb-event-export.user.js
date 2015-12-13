@@ -134,7 +134,7 @@ function addExportLink() {
 		              .replace(/<br>\s*/g, '\n') // fix newlines
 		              .replace(/<a href="([^"]*)"[^>]*>/g, '[$1] ') // show link urls
 		              .replace(/<[^>]*>/g, '');  // strip html tags
-}
+	}
 
 	var ev = {
 		title       : document.title,
