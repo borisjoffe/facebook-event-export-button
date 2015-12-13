@@ -121,7 +121,9 @@ function addExportLink() {
 		desc;
 
 	// use innerText for proper formatting, innerText will ship in Firefox 45
-	if (descElm.innerText) {
+	if (!descElm) {
+		desc = '[No description specified]';
+	} else if (descElm.innerText) {
 		// Show full event text so that innerText sees it
 		setProp(qs('.text_exposed_show', descElm), 'style.display', 'inline');
 		setProp(qs('.text_exposed_link', descElm), 'style.display', 'none');
