@@ -178,7 +178,7 @@ function addExportLink() {
 	exportElmLink.removeAttribute('rel');
 
 	// Open in new tab
-	exportElmLink.setAttribute('target', '_blank');
+	exportElmLink.target = '_blank';
 
 	exportElmParent.appendChild(exportElmLink);
 
