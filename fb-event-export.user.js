@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.2.3
+// @version      1.2.4
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -83,7 +83,7 @@ function getProp(obj, path, defaultValue) {
 	path = Array.isArray(path) ? Array.from(path) : path.split('.');
 	var prop = obj;
 
-	while (path.length && obj && obj !== null) {
+	while (path.length && obj) {
 		prop = obj[path.shift()];
 	}
 
@@ -132,6 +132,8 @@ function addExportLink() {
 		// fallback, HTML encoded entities will appear broken
 		desc = descElm.innerHTML
 		              .replace(/<br>\s*/g, '\n') // fix newlines
+		              .replace(/&nbsp;/g, ' ')
+		              .replace(/&amp;/g, '&')
 		              .replace(/<a href="([^"]*)"[^>]*>/g, '[$1] ') // show link urls
 		              .replace(/<[^>]*>/g, '');  // strip html tags
 	}
