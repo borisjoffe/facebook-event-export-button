@@ -1,20 +1,21 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.2.4
+// @version      1.3.0
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
 // @grant        unsafeWindow
 // ==/UserScript==
 /* jshint -W097 */
+/* globals console*/
 /* eslint-disable no-console, no-unused-vars */
 'use strict';
 
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015 Boris Joffe
+Copyright (c) 2015, 2017 Boris Joffe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -90,20 +91,22 @@ function getProp(obj, path, defaultValue) {
 	return prop != null ? prop : defaultValue;
 }
 
-function addExportLink() {
-	log('Event Exporter running');
 
-	// Event Summary
-	var evElm = qsv('#event_summary');
+// ==== Scrape =====
 
-	// Date & Time
+
+// == Dates ==
+
+function convertDateString(dateObj) {
+	return dateObj.toISOString()
+		.replace(/-/g, '')
+		.replace(/:/g, '')
+		.replace('.000Z', '');
+}
+
+	/*
+	// Old way to get Date & Time
 	// TODO: convert to local time instead of UTC
-	function convertDateString(dateObj) {
-		return dateObj.toISOString()
-	                  .replace(/-/g, '')
-	                  .replace(/:/g, '')
-	                  .replace('.000Z', '');
-	}
 
 	var sdElm = qsv('[itemprop="startDate"]', evElm);
 	var sdd = new Date(sdElm.getAttribute('content')),
@@ -111,11 +114,51 @@ function addExportLink() {
 	edd.setHours(edd.getHours() + 1); // Add one hour as a default
 	var evStartDate = convertDateString(sdd);
 	var evEndDate = convertDateString(edd);
+	*/
+
+function getDates() {
+	return qsv('._publicProdFeedInfo__timeRowTitle')
+		.getAttribute('content')
+		.split(' to ')
+		.map(date => new Date(date))
+		.map(convertDateString);
+}
+
+function getStartDate() { return getDates()[0]; }
+function getEndDate() { return getDates()[1]; }
+
+
+// == Location / Address ==
+
+// old way
+	/*
+	// Event Summary
+	var evElm = qsv('#event_summary');
 
 	// Location
 	var locElm = qsv('[data-hovercard]', evElm) || {};
 	var addrElm = getProp(locElm, 'nextSibling', {});
+	*/
 
+
+function getLocation() {
+	return qsv('[data-hovercard]', qs('#event_summary')).innerText;
+}
+
+function getAddress() {
+	return qsv('[data-hovercard]', qs('#event_summary')).nextSibling.innerText || 'No Address Specified';
+}
+
+function getLocationAndAddress() {
+	return getLocation() ?
+		(getLocation() + ', ' + getAddress())
+		: getAddress();
+}
+
+// == Description ==
+
+// old way
+	/*
 	// Description
 	var descElm = qs('#event_description').querySelector('span'),
 		desc;
@@ -131,28 +174,37 @@ function addExportLink() {
 	} else {
 		// fallback, HTML encoded entities will appear broken
 		desc = descElm.innerHTML
-		              .replace(/<br>\s*/g, '\n') // fix newlines
+	*/
+		              //.replace(/<br>\s*/g, '\n') // fix newlines
+	/*
 		              .replace(/&nbsp;/g, ' ')
 		              .replace(/&amp;/g, '&')
 		              .replace(/<a href="([^"]*)"[^>]*>/g, '[$1] ') // show link urls
 		              .replace(/<[^>]*>/g, '');  // strip html tags
 	}
+	*/
 
+function getDescription() {
+	return location.href +
+		'\n\n' +
+		qsv('[data-testid="event-permalink-details"]').innerText;
+}
+
+
+// ==== Make Export URL =====
+function makeExportUrl() {
 	var ev = {
 		title       : document.title,
-		startDate   : evStartDate,
-		endDate     : evEndDate,
-		location    : locElm.textContent || '',
-		address     : addrElm.textContent || 'No address specified',
-		description : location.href + '\n\n' + desc
+		startDate   : getStartDate(),
+		endDate     : getEndDate(),
+		locAndAddr  : getLocationAndAddress(),
+		description : getDescription()
 	};
-
-	ev.locationAndAddress = ev.location ?
-	                        ev.location + ', ' + ev.address :
-	                        ev.address;
 
 	for (var prop in ev) if (ev.hasOwnProperty(prop))
 		ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
+
+	// gcal format - http://stackoverflow.com/questions/10488831/link-to-add-to-google-calendar
 
 	// Create link, use UTC timezone to be compatible with toISOString()
 	var exportUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=[TITLE]&dates=[STARTDATE]/[ENDDATE]&details=[DETAILS]&location=[LOCATION]&ctz=UTC';
@@ -161,10 +213,15 @@ function addExportLink() {
 	                     .replace('[TITLE]', ev.title)
 	                     .replace('[STARTDATE]', ev.startDate)
 	                     .replace('[ENDDATE]', ev.endDate)
-	                     .replace('[LOCATION]', ev.locationAndAddress)
+	                     .replace('[LOCATION]', ev.locAndAddr)
 	                     .replace('[DETAILS]', ev.description);
 
-	dbg(exportUrl, ' - Export URL');
+	return dbg(exportUrl, ' - Export URL');
+}
+
+
+function addExportLink() {
+	log('Event Exporter running');
 
 	var
 		evBarElm = qsv('#event_button_bar'),
@@ -172,7 +229,7 @@ function addExportLink() {
 		exportElmParent = exportElmLink.parentNode;
 
 	exportElmLink = exportElmLink.cloneNode();
-	exportElmLink.href = exportUrl;
+	exportElmLink.href = makeExportUrl();
 	exportElmLink.textContent = 'Export Event';
 
 	// Disable Facebook event listeners (that are attached due to cloning element)
@@ -211,7 +268,7 @@ function addExportLinkWhenLoaded() {
 	if (location.href.indexOf('/events/') === -1) {
 		dbg('not an event page. skipping...');
 		return;
-	} else if (!qs('#event_button_bar') || !qs('#event_description') || !qs('[itemprop="startDate"]')) {
+	} else if (!qs('#event_button_bar') || !qs('#event_summary')) {
 		// not loaded
 		dbg('page not loaded...');
 		setTimeout(addExportLinkWhenLoaded, 1000);
