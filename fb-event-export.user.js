@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.1
+// @version      1.3.2
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -185,6 +185,10 @@ function getLocationAndAddress() {
 	*/
 
 function getDescription() {
+	var seeMore = qsv('.see_more_link')
+	if (seeMore)
+		seeMore.click();  // expand description
+
 	return location.href +
 		'\n\n' +
 		qsv('[data-testid="event-permalink-details"]').innerText;
