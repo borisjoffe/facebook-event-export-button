@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.0
+// @version      1.3.1
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -259,10 +259,16 @@ function addExportLink() {
 	dbg('monkey patched pushState');
 })(window.history.pushState);
 
-window.onpopstate = function () {
-	dbg('pop state');
-	setTimeout(addExportLinkWhenLoaded, 1000);
-};
+// onpopstate is sometimes null causing the following error:
+// 'Cannot set property onpopstate of #<Object> which has only a getter'
+if (window.onpopstate) {
+	window.onpopstate = function () {
+		dbg('pop state event fired');
+		setTimeout(addExportLinkWhenLoaded, 1000);
+	};
+} else {
+	dbg('Unable to set "onpopstate" event', window.onpopstate);
+}
 
 function addExportLinkWhenLoaded() {
 	if (location.href.indexOf('/events/') === -1) {
@@ -279,5 +285,6 @@ function addExportLinkWhenLoaded() {
 	}
 }
 
+var onLoad = addExportLinkWhenLoaded;
 
-window.addEventListener('load', addExportLinkWhenLoaded, true);
+window.addEventListener('load', onLoad, true);
