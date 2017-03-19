@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.2
+// @version      1.3.3
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -94,6 +94,11 @@ function getProp(obj, path, defaultValue) {
 
 // ==== Scrape =====
 
+// == Title ==
+function getTitle() {
+	// only include the first host for brevity
+	return document.title + ' (' + getHostedByText()[0] + ')';
+}
 
 // == Dates ==
 
@@ -185,20 +190,38 @@ function getLocationAndAddress() {
 	*/
 
 function getDescription() {
-	var seeMore = qsv('.see_more_link')
+	var seeMore = qsv('.see_more_link');
 	if (seeMore)
 		seeMore.click();  // expand description
 
 	return location.href +
 		'\n\n' +
 		qsv('[data-testid="event-permalink-details"]').innerText;
+		// Zip text array with links array?
+		//'\n\nHosted By:\n' +
+		//getHostedByText().join(', ') + '\n' + getHostedByLinks().join('\n') +
+}
+
+function getHostedByText() {
+	var el = qsv('._5gnb > div');
+	var text = el.getAttribute('content');
+	if (text.lastIndexOf(' & ') !== -1)
+		text = text.substr(0, text.lastIndexOf(' & ')); // chop off trailing ' & '
+
+	return text.split(' & ');
+}
+
+function getHostedByLinks() {
+	var el = qsv('._5gnb > div');
+	return Array.from(qsav('a', el))
+		.map(a => a.href);
 }
 
 
 // ==== Make Export URL =====
 function makeExportUrl() {
 	var ev = {
-		title       : document.title,
+		title       : getTitle(),
 		startDate   : getStartDate(),
 		endDate     : getEndDate(),
 		locAndAddr  : getLocationAndAddress(),
