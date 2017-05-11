@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.3
+// @version      1.3.4
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -65,6 +65,7 @@ function qsav(elmStr, parent) {
 	return elm;
 }
 
+/*
 function setProp(parent, path, val) {
 	if (!parent || typeof parent !== 'object')
 		return;
@@ -91,6 +92,7 @@ function getProp(obj, path, defaultValue) {
 	return prop != null ? prop : defaultValue;
 }
 
+*/
 
 // ==== Scrape =====
 
@@ -203,7 +205,7 @@ function getDescription() {
 }
 
 function getHostedByText() {
-	var el = qsv('._5gnb > div');
+	var el = qsv('._5gnb [content]');
 	var text = el.getAttribute('content');
 	if (text.lastIndexOf(' & ') !== -1)
 		text = text.substr(0, text.lastIndexOf(' & ')); // chop off trailing ' & '
@@ -211,11 +213,13 @@ function getHostedByText() {
 	return text.split(' & ');
 }
 
+/*
 function getHostedByLinks() {
 	var el = qsv('._5gnb > div');
 	return Array.from(qsav('a', el))
 		.map(a => a.href);
 }
+*/
 
 
 // ==== Make Export URL =====
@@ -228,8 +232,31 @@ function makeExportUrl() {
 		description : getDescription()
 	};
 
-	for (var prop in ev) if (ev.hasOwnProperty(prop))
+	var totalLength = 0;
+	for (var prop in ev) if (ev.hasOwnProperty(prop)) {
 		ev[prop] = euc(dbg(ev[prop], ' - ' + prop));
+		totalLength += ev[prop].length;
+	}
+
+	// max is about 8200 chars but allow some slack for the base URL
+	const MAX_URL_LENGTH = 8000;
+
+	console.info('event props totalLength', totalLength);
+	if (totalLength > MAX_URL_LENGTH) {
+		var numCharsOverLimit = totalLength - MAX_URL_LENGTH;
+		var maxEventDescriptionChars = ev.description.length - numCharsOverLimit;
+
+		// will only happen if event title or location is extremely long
+		// FIXME: truncate event title / location if necessary
+		if (maxEventDescriptionChars < 1) {
+			console.warn('maxEventDescriptionChars is', maxEventDescriptionChars);
+		}
+
+		console.warn('Event description truncated from', ev.description.length, 'characters to', maxEventDescriptionChars, 'characters');
+
+		ev.description = ev.description.substr(0, maxEventDescriptionChars) + '...';
+	}
+
 
 	// gcal format - http://stackoverflow.com/questions/10488831/link-to-add-to-google-calendar
 
@@ -242,6 +269,8 @@ function makeExportUrl() {
 	                     .replace('[ENDDATE]', ev.endDate)
 	                     .replace('[LOCATION]', ev.locAndAddr)
 	                     .replace('[DETAILS]', ev.description);
+
+	console.info('exportUrl length =', exportUrl.length);
 
 	return dbg(exportUrl, ' - Export URL');
 }
