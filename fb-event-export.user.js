@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.5
+// @version      1.3.6
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -96,11 +96,14 @@ function getProp(obj, path, defaultValue) {
 
 // ==== Scrape =====
 
+
 // == Title ==
+
 function getTitle() {
 	// only include the first host for brevity
 	return document.title + ' (' + getHostedByText()[0] + ')';
 }
+
 
 // == Dates ==
 
@@ -110,18 +113,6 @@ function convertDateString(dateObj) {
 		.replace(/:/g, '')
 		.replace('.000Z', '');
 }
-
-	/*
-	// Old way to get Date & Time
-	// TODO: convert to local time instead of UTC
-
-	var sdElm = qsv('[itemprop="startDate"]', evElm);
-	var sdd = new Date(sdElm.getAttribute('content')),
-		edd = new Date(sdd);
-	edd.setHours(edd.getHours() + 1); // Add one hour as a default
-	var evStartDate = convertDateString(sdd);
-	var evEndDate = convertDateString(edd);
-	*/
 
 function getDates() {
 	return qsv('._publicProdFeedInfo__timeRowTitle')
@@ -137,17 +128,6 @@ function getEndDate() { return getDates()[1]; }
 
 // == Location / Address ==
 
-// old way
-	/*
-	// Event Summary
-	var evElm = qsv('#event_summary');
-
-	// Location
-	var locElm = qsv('[data-hovercard]', evElm) || {};
-	var addrElm = getProp(locElm, 'nextSibling', {});
-	*/
-
-
 function getLocation() {
 	return qsv('[data-hovercard]', qs('#event_summary')).innerText;
 }
@@ -162,34 +142,8 @@ function getLocationAndAddress() {
 		: getAddress();
 }
 
+
 // == Description ==
-
-// old way
-	/*
-	// Description
-	var descElm = qs('#event_description').querySelector('span'),
-		desc;
-
-	// use innerText for proper formatting, innerText will ship in Firefox 45
-	if (!descElm) {
-		desc = '[No description specified]';
-	} else if (descElm.innerText) {
-		// Show full event text so that innerText sees it
-		setProp(qs('.text_exposed_show', descElm), 'style.display', 'inline');
-		setProp(qs('.text_exposed_link', descElm), 'style.display', 'none');
-		desc = descElm.innerText;
-	} else {
-		// fallback, HTML encoded entities will appear broken
-		desc = descElm.innerHTML
-	*/
-		              //.replace(/<br>\s*/g, '\n') // fix newlines
-	/*
-		              .replace(/&nbsp;/g, ' ')
-		              .replace(/&amp;/g, '&')
-		              .replace(/<a href="([^"]*)"[^>]*>/g, '[$1] ') // show link urls
-		              .replace(/<[^>]*>/g, '');  // strip html tags
-	}
-	*/
 
 function getDescription() {
 	var seeMore = qsv('.see_more_link');
@@ -213,17 +167,10 @@ function getHostedByText() {
 	return text.split(' & ');
 }
 
-/*
-function getHostedByLinks() {
-	var el = qsv('._5gnb > div');
-	return Array.from(qsav('a', el))
-		.map(a => a.href);
-}
-*/
-
 
 // ==== Make Export URL =====
 function makeExportUrl() {
+	console.time('makeExportUrl');
 	var ev = {
 		title       : getTitle(),
 		startDate   : getStartDate(),
@@ -272,11 +219,13 @@ function makeExportUrl() {
 
 	console.info('exportUrl length =', exportUrl.length);
 
+	console.timeEnd('makeExportUrl');
 	return dbg(exportUrl, ' - Export URL');
 }
 
 
 function addExportLink() {
+	console.time('addExportLink');
 	log('Event Exporter running');
 
 	var
@@ -302,6 +251,7 @@ function addExportLink() {
 		// fix styles
 		a.style.display = 'inline-block';
 	});
+	console.timeEnd('addExportLink');
 }
 
 
