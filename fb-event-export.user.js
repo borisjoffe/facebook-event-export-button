@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.4
+// @version      1.3.5
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -227,7 +227,7 @@ function makeExportUrl() {
 	var ev = {
 		title       : getTitle(),
 		startDate   : getStartDate(),
-		endDate     : getEndDate(),
+		endDate     : getEndDate() || getStartDate(),  // set to startDate if undefined
 		locAndAddr  : getLocationAndAddress(),
 		description : getDescription()
 	};
