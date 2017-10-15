@@ -19,7 +19,9 @@ One of the following:
 
 Known Issues
 -----------
-- Google Calendar times are displayed in UTC
+- Google Calendar times are displayed in UTC instead of local time
+- "About" tab has to be open for the "Export Event" button to show up (will not show up if "Discussion" tab open)
+- Refreshing the page is sometimes necessary if navigating from a non-event Facebook page
 
 License
 -------
