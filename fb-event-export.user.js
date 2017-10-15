@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.6
+// @version      1.3.7
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -129,11 +129,16 @@ function getEndDate() { return getDates()[1]; }
 // == Location / Address ==
 
 function getLocation() {
-	return qsv('[data-hovercard]', qs('#event_summary')).innerText;
+	var hovercard = qsv('[data-hovercard]', qs('#event_summary'));
+	return hovercard ? hovercard.innerText : '';
 }
 
 function getAddress() {
-	return qsv('[data-hovercard]', qs('#event_summary')).nextSibling.innerText || 'No Address Specified';
+	var hovercard = qsv('[data-hovercard]', qs('#event_summary'));
+	if (hovercard)
+		return hovercard.nextSibling.innerText || 'No Address Specified';
+	else
+		return qsv('#u_0_1h').innerText;
 }
 
 function getLocationAndAddress() {
