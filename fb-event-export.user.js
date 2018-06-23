@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
-// @namespace    http://boris.joff3.com
+// @namespace    http://borisjoffe.com
 // @version      1.3.10
 // @description  Export Facebook events
 // @author       Boris Joffe
@@ -15,7 +15,7 @@
 /*
 The MIT License (MIT)
 
-Copyright (c) 2015, 2017 Boris Joffe
+Copyright (c) 2015, 2017, 2018 Boris Joffe
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
