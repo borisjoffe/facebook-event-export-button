@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.9
+// @version      1.3.10
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -129,26 +129,22 @@ function getEndDate() { return getDates()[1]; }
 // == Location / Address ==
 
 function getLocation() {
+	var hovercard = qsv('[data-hovercard]', qs('#event_summary'));
+	return hovercard ? hovercard.innerText : '';
+}
+
+function getAddress() {
 	var hovercard = qsv('[data-hovercard]', qs('#event_summary')),
-		addr;
+		addr = qsv('#u_0_1h');
 	if (hovercard)
 		return hovercard.nextSibling.innerText || 'No Address Specified';
-	else if (addr = qsv('#u_0_1h'))
+	else if (addr)
 		return addr.innerText;
 	else
 		// certain addresses like GPS coordinates
 		// e.g. https://facebook.com/events/199708740636288/
 		// HACK: don't have a unique way to get the text (matches time and address - address is second)
 		return Array.from(qsav('._5xhk')).slice(-1)[0].innerText;
-	return hovercard ? hovercard.innerText : '';
-}
-
-function getAddress() {
-	var hovercard = qsv('[data-hovercard]', qs('#event_summary'));
-	if (hovercard)
-		return hovercard.nextSibling.innerText || 'No Address Specified';
-	else
-		return qsv('#u_0_1h').innerText;
 }
 
 function getLocationAndAddress() {
