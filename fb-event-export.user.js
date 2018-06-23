@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
-// @namespace    http://borisjoffe.com
+// @namespace    http://boris.joff3.com
 // @version      1.3.11
 // @description  Export Facebook events
 // @author       Boris Joffe
