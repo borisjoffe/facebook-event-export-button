@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://boris.joff3.com
-// @version      1.3.8
+// @version      1.3.9
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -255,6 +255,7 @@ function addExportLink() {
 	// Disable Facebook event listeners (that are attached due to cloning element)
 	exportElmLink.removeAttribute('ajaxify');
 	exportElmLink.removeAttribute('rel');
+	exportElmLink.removeAttribute('data-onclick');
 
 	// Open in new tab
 	exportElmLink.target = '_blank';
