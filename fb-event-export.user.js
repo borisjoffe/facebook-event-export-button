@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Facebook Event Exporter
 // @namespace    http://borisjoffe.com
-// @version      1.3.10
+// @version      1.3.11
 // @description  Export Facebook events
 // @author       Boris Joffe
 // @match        https://www.facebook.com/*
@@ -115,7 +115,7 @@ function convertDateString(dateObj) {
 }
 
 function getDates() {
-	return qsv('._publicProdFeedInfo__timeRowTitle')
+	return qsv('#event_time_info ._2ycp')
 		.getAttribute('content')
 		.split(' to ')
 		.map(date => new Date(date))
